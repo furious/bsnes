@@ -192,6 +192,8 @@ public:
     signed yDistance;
     signed zDistance;
     unsigned buttonState;
+    signed xLast;
+    signed yLast;
 
     void sync() {
       xDistance = 0;
@@ -200,10 +202,25 @@ public:
     }
 
     void update(RAWINPUT *input) {
-      if((input->data.mouse.usFlags & 1) == MOUSE_MOVE_RELATIVE) {
-        xDistance += input->data.mouse.lLastX;
-        yDistance += input->data.mouse.lLastY;
+      if((input->data.mouse.usFlags & MOUSE_MOVE_RELATIVE) == MOUSE_MOVE_RELATIVE) {
+        if((input->data.mouse.usFlags & MOUSE_VIRTUAL_DESKTOP) == MOUSE_VIRTUAL_DESKTOP){
+          const int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+          const int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+          const signed xCurrent = (input->data.mouse.lLastX / 65535.0f) * width;
+          const signed yCurrent = (input->data.mouse.lLastY / 65535.0f) * height;
+          if(xCurrent != xLast || yCurrent != yLast) {
+            xDistance += xCurrent - xLast;
+            yDistance += yCurrent - yLast;
+          }
+          xLast = xCurrent;
+          yLast = yCurrent;
+        } else {
+          // NOTE: Normal, delta codepath
+          xDistance += input->data.mouse.lLastX;
+          yDistance += input->data.mouse.lLastY;
+        }
       }
+
 
       if(input->data.mouse.usButtonFlags & RI_MOUSE_BUTTON_1_DOWN) buttonState |=  1 << 0;
       if(input->data.mouse.usButtonFlags & RI_MOUSE_BUTTON_1_UP  ) buttonState &=~ 1 << 0;
