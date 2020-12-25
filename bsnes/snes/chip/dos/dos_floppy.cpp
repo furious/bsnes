@@ -19,6 +19,8 @@ DOSFloppy::DOSFloppy() {
   
   fdc = new upd765_t;
   fdd = new fdd_t[4];
+  for(int i; i < 4; i++)
+    fdd_init(&fdd[i]);
   
   upd765_init(fdc, &desc);
 }
@@ -33,17 +35,19 @@ void DOSFloppy::reset() {
   upd765_reset(fdc);
 
   file discimage;
+  if(cartridge.basename().length() > 0)
   for(int i; i < 4; i++){
-    discimage.open(string(cartridge.basename(), "-floppy-", i+1, ".raw"), file::mode::writeread);
+    discimage.open(string(cartridge.basename(), "-floppy-", i+1, ".raw"), file::mode::append);
     if(fdd[i].has_disc){
       discimage.truncate(0);
       discimage.write(fdd[i].data, fdd[i].data_size);
+      printf("save %d\n", fdd[i].data_size);
     } else {
-      fdd_init(&fdd[i]);
+      printf("no disc\n");
       if(discimage.size() > 0){
         fdd_dos_insert_empty(&fdd[i], discimage.size());
         discimage.read(fdd[i].data, discimage.size());
-        printf("%d\n", discimage.size());
+        printf("load %d\n", discimage.size());
       } else {
         fdd_dos_insert_empty(&fdd[i], FDD_MAX_DISC_SIZE);
       }

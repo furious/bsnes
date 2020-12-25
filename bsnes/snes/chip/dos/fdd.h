@@ -49,8 +49,8 @@ extern "C" {
 #endif
 
 #define FDD_MAX_SIDES (2)           /* max number of disc sides */
-#define FDD_MAX_TRACKS (80)         /* max number of tracks per side */
-#define FDD_MAX_SECTORS (9)         /* max sectors per track */
+#define FDD_MAX_TRACKS (77)         /* max number of tracks per side */
+#define FDD_MAX_SECTORS (8)         /* max sectors per track */
 #define FDD_MAX_SECTOR_SIZE (1024)  /* max size of a sector in bytes */
 #define FDD_MAX_TRACK_SIZE (FDD_MAX_SECTORS*FDD_MAX_SECTOR_SIZE)
 #define FDD_MAX_DISC_SIZE (FDD_MAX_SIDES*FDD_MAX_TRACKS*FDD_MAX_TRACK_SIZE)

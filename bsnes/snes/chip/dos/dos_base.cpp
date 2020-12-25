@@ -13,8 +13,12 @@ void DOS::init() {
 }
 
 void DOS::enable() {
-  bus.map(Bus::MapMode::Direct, 0x00, 0x3f, 0x5f00, 0x5fff, *this);
-  bus.map(Bus::MapMode::Direct, 0x80, 0xbf, 0x5f00, 0x5fff, *this);
+  bus.map(Bus::MapMode::Direct, 0x00, 0x3f, 0x5f00, 0x5f30, *this); // default sfxdos addr
+  bus.map(Bus::MapMode::Direct, 0x80, 0xbf, 0x5f00, 0x5f30, *this); // default sfxdos addr
+  bus.map(Bus::MapMode::Direct, 0x00, 0x3f, 0x7f00, 0x7f30, *this); // addr used in mariokart
+  bus.map(Bus::MapMode::Direct, 0x80, 0xbf, 0x7f00, 0x7f30, *this); // addr used in mariokart
+
+  bus.map(Bus::MapMode::Direct, 0x80, 0xbf, 0x7f00, 0x7f30, *this); // addr used in mariokart
 
   // terrible hack to patch the NMI and IRQ vectors in the standard
   // SFX-DOS ROM, since they normally have bogus addresses for some reason

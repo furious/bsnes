@@ -26,7 +26,7 @@ namespace nall {
 
   class file {
   public:
-    enum class mode : unsigned { read, write, readwrite, writeread };
+    enum class mode : unsigned { read, write, readwrite, writeread, append };
     enum class index : unsigned { absolute, relative };
 
     uint8_t read() {
@@ -182,11 +182,13 @@ namespace nall {
         case mode::write:     fp = fopen(fn, "wb+"); break;  //need read permission for buffering
         case mode::readwrite: fp = fopen(fn, "rb+"); break;
         case mode::writeread: fp = fopen(fn, "wb+"); break;
+        case mode::append:    fp = fopen(fn, "ab+"); break;
         #else
         case mode::read:      fp = _wfopen(utf16_t(fn), L"rb");  break;
         case mode::write:     fp = _wfopen(utf16_t(fn), L"wb+"); break;
         case mode::readwrite: fp = _wfopen(utf16_t(fn), L"rb+"); break;
         case mode::writeread: fp = _wfopen(utf16_t(fn), L"wb+"); break;
+        case mode::append:    fp = _wfopen(utf16_t(fn), L"ab+"); break;
         #endif
       }
       if(!fp) return false;
