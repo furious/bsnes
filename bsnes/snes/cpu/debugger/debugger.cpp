@@ -120,7 +120,11 @@ uint8 CPUDebugger::op_read(uint32 addr) {
     if (offset >= 0) cart_usage[offset] |= UsageRead;
   
     debugger.breakpoint_test(Debugger::Breakpoint::Source::CPUBus, Debugger::Breakpoint::Mode::Read, addr, data);
+
+    read_addr = addr;
+    if(read_event) read_event();
   }
+
   return data;
 }
 
@@ -129,9 +133,12 @@ uint8 CPUDebugger::dma_read(uint32 abus) {
   
   int offset = cartridge.rom_offset(abus);
   if (offset >= 0) cart_usage[offset] |= UsageRead;
-  
+
   uint8 data = CPU::dma_read(abus);
   debugger.breakpoint_test(Debugger::Breakpoint::Source::CPUBus, Debugger::Breakpoint::Mode::Read, abus, data);
+
+  read_addr = abus;
+  if(read_event) read_event();
   return data;
 }
 

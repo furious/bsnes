@@ -35,6 +35,7 @@ public:
   void     setFlag(unsigned id, bool value);
     
   function<void ()> step_event;
+  function<void ()> read_event;
 
   enum Usage {
     UsageRead   = 0x80,
@@ -47,6 +48,7 @@ public:
   };
   uint8 *usage;
   uint8 *cart_usage;
+  unsigned read_addr;
 #if defined(ALT_CPU_HPP)
   uint8 mmio_read(unsigned addr);
   void mmio_write(unsigned addr, uint8 data);

@@ -221,19 +221,21 @@ void CPUcore::disassemble_opcode(char *output, uint32 addr, bool hclocks) {
 // 2) be fixed length and easy to parse out later
 // 3) be as compact as possible. (abridgedFormat cuts even more stuff)
 // 4) be extensible (use a header length so we can add more info later)
-void CPUcore::disassemble_opcode_bin(char* buf, uint32 addr, int &len_out, bool abridgedFormat) {
+void CPUcore::disassemble_opcode_bin(char* buf, uint32 addr, int &len_out, int format) {
     static reg24_t pc;
 
     pc.d = addr;
     uint8 opcode = dreadb(pc.d);
     unsigned opcode_len = SNESCPU::getOpcodeLength((regs.e || regs.p.m), (regs.e || regs.p.x), opcode);
+    unsigned op_mode = cpuOpcodeInfo[opcode].mode;
+    uint32 iaddr = 0; 
 
     int i = 0;
 
     // --- header (2 bytes) ---
 
     // watermark identifying the type of data coming next
-    buf[i++] = abridgedFormat ? 0xEE : 0xEF;
+    buf[i++] = format;
 
     // size in bytes of data starting after this byte (we will populate final size at the end)
     int sizeIdx = i; i++;
@@ -253,16 +255,18 @@ void CPUcore::disassemble_opcode_bin(char* buf, uint32 addr, int &len_out, bool 
 
     buf[i++] = (regs.p) & 0xFF; // 8 flags stored as bitmask in 1 byte
 
-    if (!abridgedFormat) {
+    pc.w++;
+    uint8 operand0 = dreadb(pc.d); pc.w++;
+    uint8 operand1 = dreadb(pc.d); pc.w++;
+    uint8 operand2 = dreadb(pc.d);
+    #define op24 ((operand0) | (operand1 << 8) | (operand2 << 16))
+
+    if (format == 0xEF) {
         // we'll always transmit 4 bytes, but, consumers should only use up to 'opcode_len'
         // and discard the remaining bytes.
         // i.e. if opcode_len is 2,
         // then a consumer should USE opcode and operand0 (2 bytes)
         // then read but discard the remaining 2 bytes (operand1 and operand2 will be garbage)
-        pc.w++;
-        uint8 operand0 = dreadb(pc.d); pc.w++;
-        uint8 operand1 = dreadb(pc.d); pc.w++;
-        uint8 operand2 = dreadb(pc.d);
 
         buf[i++] = opcode;      // always valid (opcode_len >= 1)
         buf[i++] = operand0;    // valid if opcode_len >= 2
@@ -285,6 +289,19 @@ void CPUcore::disassemble_opcode_bin(char* buf, uint32 addr, int &len_out, bool 
 
         // TODO: hclocks/etc if we want them.
     }
+
+    //printf("%06x\n", SNES::cpu.read_addr);
+    if (format == 0xED)
+      iaddr = SNES::cpu.read_addr;
+    else if (op_mode >= SNESCPU::Direct || op_mode != SNESCPU::BlockMove)
+      iaddr = decode(op_mode, op24, addr);
+
+    //if (op_info.name != "lda" iaddr & 0x00ffff < 0x8000 || op)
+    //  iaddr = 0;
+    // --- indirect address ---
+    buf[i++] = (iaddr >> 0) & 0xFF;
+    buf[i++] = (iaddr >> 8) & 0xFF;
+    buf[i++] = (iaddr >> 16) & 0xFF;
 
     // put the length of everything back in the header
     len_out = i;

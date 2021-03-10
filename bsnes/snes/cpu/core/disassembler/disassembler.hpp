@@ -73,7 +73,7 @@ struct Opcode {
 
 void   disassemble_opcode(char *output, uint32 addr, bool hclocks = false);
 void   disassemble_opcode_ex(Opcode &opcode, uint32 addr, bool e, bool m, bool x);
-void   disassemble_opcode_bin(char* buf, uint32 addr, int &len_out, bool abridgedFormat=true);
+void   disassemble_opcode_bin(char* buf, uint32 addr, int &len_out, int format=0xEE);
 uint8  dreadb(uint32 addr);
 uint16 dreadw(uint32 addr);
 uint32 dreadl(uint32 addr);

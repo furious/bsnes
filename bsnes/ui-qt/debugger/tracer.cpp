@@ -111,6 +111,18 @@ void Tracer::stepCpu() {
   }
 }
 
+void Tracer::readCpu() {
+  unsigned addr = SNES::cpu.read_addr;
+  char buf[256]; int len = 0;
+  if(traceCpu) {
+    if(!traceMask || !(traceMaskCPU[addr >> 3] & (0x80 >> (addr & 7)))) {
+      SNES::cpu.disassemble_opcode_bin(buf, SNES::cpu.regs.pc, len, 0xED); // binary
+      outputTrace(buf, len);
+    }
+    traceMaskCPU[addr >> 3] |= 0x80 >> (addr & 7);
+  }
+}
+
 void Tracer::stepSmp() {
   if(traceSmp) {
     unsigned addr = SNES::smp.regs.pc;
@@ -245,6 +257,7 @@ Tracer::Tracer() {
   traceMaskSGB = new uint8_t[(1 << 16) >> 3]();
 
   SNES::cpu.step_event = { &Tracer::stepCpu, this };
+  SNES::cpu.read_event = { &Tracer::readCpu, this };
   SNES::smp.step_event = { &Tracer::stepSmp, this };
   SNES::sa1.step_event = { &Tracer::stepSa1, this };
   SNES::superfx.step_event = { &Tracer::stepSfx, this };

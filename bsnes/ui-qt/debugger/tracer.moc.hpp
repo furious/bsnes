@@ -5,6 +5,7 @@ class Tracer : public QObject {
 
 public:
   void stepCpu();
+  void readCpu();
   void stepSmp();
   void stepSa1();
   void stepSfx();
